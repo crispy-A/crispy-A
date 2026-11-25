@@ -2,6 +2,8 @@
 FROM golang:1.27-alpine AS build
 
 WORKDIR /src
+# 国内网络下 proxy.golang.org 不可达，优先走 goproxy.cn；海外机器可自行调整。
+ENV GOPROXY=https://goproxy.cn,https://proxy.golang.org,direct
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
