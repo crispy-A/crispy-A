@@ -1,0 +1,25 @@
+# 依赖与构建产物
+node_modules/
+dist/
+
+# 环境变量与密钥（.env.example 是模板，需要保留）
+.env
+.env.*
+!.env.example
+
+# Go 构建产物与测试输出
+backend/bin/
+backend/coverage.out
+*.exe
+
+# 编辑器与系统文件
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 日志、临时文件与本地记忆
+*.log
+tmp/
+.ai-memory/
+.artifacts/
