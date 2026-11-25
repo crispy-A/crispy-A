@@ -1,5 +1,7 @@
 # Docker 部署说明
 
+> 已在 Windows 11 + Docker Desktop（Docker 29.9.3 / Compose v5.7.1 / WSL 3.0.5）本地验证：`db + api + web` 全栈构建、迁移、管理员初始化、登录、静态资源与 `/api` 反代全部通过。Linux 服务器只需替换路径、证书与域名。
+
 ## 拓扑
 
 ```
@@ -107,15 +109,27 @@ docker compose --env-file .env.prod exec -T db \
 
 ## 本地验证（Windows / 不冲突端口）
 
-本机已有 8080/5432 的开发服务时，用独立端口和临时 env 验证整栈：
+本机已有 8080/5432 的开发服务时，用独立端口和临时 env 验证整栈。`.env.test` 已被 `.gitignore` 忽略：
 
 ```powershell
-# .env.test 里额外设置：API_PORT=18080  WEB_PORT=18081  COOKIE_SECURE=false
+# .env.test 额外设置：API_PORT=18080  WEB_PORT=18081  COOKIE_SECURE=false  CORS_ORIGINS=http://127.0.0.1:18081
 docker compose --env-file .env.test --profile web up -d --build
 curl.exe -fsS http://127.0.0.1:18080/api/health
 curl.exe -I http://127.0.0.1:18081/
 docker compose --env-file .env.test --profile web down
 ```
+
+`down` 会保留 `crispy-a_pgdata` 数据卷；只有 `down -v` 才会删除数据库数据。
+
+## 国内网络
+
+Docker Hub 直连可能超时，报错类似 `failed to resolve reference "docker.io/library/..."`。需要在 Docker 配置里加镜像加速：
+
+- Docker Desktop：编辑 `%USERPROFILE%\.docker\daemon.json`，加入
+  `"registry-mirrors": ["https://docker.m.daocloud.io"]`，然后重启 Docker Desktop；
+- Linux 服务器：编辑 `/etc/docker/daemon.json` 后 `systemctl restart docker`。
+
+镜像源可用性会变化，构建前先用 `docker pull alpine:3.22` 验证。
 
 ## 注意事项
 

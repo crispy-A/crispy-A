@@ -263,7 +263,7 @@ chmod 600 .env.prod
 docker compose --env-file .env.prod up -d --build db api
 ```
 
-完整步骤、两种拓扑、验证、备份与回滚见 [deploy/README.md](deploy/README.md)，宿主机 Nginx 配置见 [deploy/nginx-host.conf](deploy/nginx-host.conf)。
+完整步骤、两种拓扑、验证、备份与回滚见 [deploy/README.md](deploy/README.md)，宿主机 Nginx 配置见 [deploy/nginx-host.conf](deploy/nginx-host.conf)。国内拉取 Docker Hub 镜像失败时，先按部署文档配置 `registry-mirrors`。
 
 ## 已知限制
 
