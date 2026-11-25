@@ -279,6 +279,8 @@ chmod +x start.sh stop.sh    # 首次拉取后如无执行权限
 
 `--status` 会输出 Docker 引擎、各容器状态、`running/expected` 服务数、HTTP 健康检查和数据卷情况，适合直接用于巡检或监控脚本。
 
+完整的发版、数据库备份、回滚与常见问题处理见 [RELEASE.md](RELEASE.md)。
+
 ## 已知限制
 
 - 登录接口没有限流 / 验证码，暴力破解防护需在网关或后续中间件补齐；
