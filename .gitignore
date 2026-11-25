@@ -6,6 +6,7 @@ dist/
 .env
 .env.*
 !.env.example
+!.env.prod.example
 
 # Go 构建产物与测试输出
 backend/bin/

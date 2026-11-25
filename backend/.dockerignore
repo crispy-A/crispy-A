@@ -1,0 +1,7 @@
+# 构建上下文只需 Go 源码；本地密钥与构建产物不能进镜像。
+.env
+.env.*
+bin/
+*.log
+*.exe
+coverage.out

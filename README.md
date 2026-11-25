@@ -253,6 +253,18 @@ server {
 }
 ```
 
+## Docker 部署
+
+仓库自带 `compose.yaml`、前后端 Dockerfile 与宿主机 Nginx 示例。默认只启动 `db + api`，前端 `dist` 交给宿主机 Nginx；需要容器托管前端时加 `--profile web`。
+
+```bash
+cp .env.prod.example .env.prod   # 填 POSTGRES_PASSWORD / JWT_SECRET / CORS_ORIGINS / ADMIN_*
+chmod 600 .env.prod
+docker compose --env-file .env.prod up -d --build db api
+```
+
+完整步骤、两种拓扑、验证、备份与回滚见 [deploy/README.md](deploy/README.md)，宿主机 Nginx 配置见 [deploy/nginx-host.conf](deploy/nginx-host.conf)。
+
 ## 已知限制
 
 - 登录接口没有限流 / 验证码，暴力破解防护需在网关或后续中间件补齐；
