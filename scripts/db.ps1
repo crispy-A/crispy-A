@@ -1,5 +1,5 @@
-# 本地 PostgreSQL 17 启停脚本（便携二进制，不注册 Windows 服务）。
-# 用法：powershell -File scripts/db.ps1 start|stop|status
+# Start / stop the local PostgreSQL 17 instance (portable binaries, no Windows service).
+# Usage: powershell -File scripts/db.ps1 start|stop|status
 param(
     [ValidateSet('start', 'stop', 'status')]
     [string]$Action = 'start'
@@ -10,32 +10,32 @@ $pgData = if ($env:PGDATA) { $env:PGDATA } else { 'D:\crispy\pgdata' }
 
 $pgCtl = Join-Path $pgBin 'pg_ctl.exe'
 if (-not (Test-Path $pgCtl)) {
-    throw "找不到 pg_ctl：$pgCtl。请通过 PG_BIN 环境变量指向 PostgreSQL bin 目录。"
+    throw "pg_ctl not found: $pgCtl. Set PG_BIN to the PostgreSQL bin directory."
 }
 if (-not (Test-Path (Join-Path $pgData 'PG_VERSION'))) {
-    throw "PGDATA 尚未初始化：$pgData。"
+    throw "PGDATA is not initialized: $pgData."
 }
 
 switch ($Action) {
     'start' {
         & $pgCtl status -D $pgData *> $null
         if ($LASTEXITCODE -eq 0) {
-            Write-Output "PostgreSQL 已在运行：$pgData"
+            Write-Output "PostgreSQL already running: $pgData"
             break
         }
         $logFile = Join-Path $pgData 'server.log'
         & $pgCtl start -D $pgData -l $logFile -w -t 60
         if ($LASTEXITCODE -ne 0) {
-            throw "PostgreSQL 启动失败，请查看日志：$logFile"
+            throw "PostgreSQL failed to start. Check log: $logFile"
         }
-        Write-Output "PostgreSQL 已启动：$pgData"
+        Write-Output "PostgreSQL started: $pgData"
     }
     'stop' {
         & $pgCtl stop -D $pgData -m fast -w -t 60
         if ($LASTEXITCODE -ne 0) {
-            throw "PostgreSQL 停止失败。"
+            throw 'PostgreSQL failed to stop.'
         }
-        Write-Output "PostgreSQL 已停止。"
+        Write-Output 'PostgreSQL stopped.'
     }
     'status' {
         & $pgCtl status -D $pgData
