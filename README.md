@@ -265,6 +265,20 @@ docker compose --env-file .env.prod up -d --build db api
 
 完整步骤、两种拓扑、验证、备份与回滚见 [deploy/README.md](deploy/README.md)，宿主机 Nginx 配置见 [deploy/nginx-host.conf](deploy/nginx-host.conf)。国内拉取 Docker Hub 镜像失败时，先按部署文档配置 `registry-mirrors`。
 
+### 启停脚本
+
+项目根目录提供 Linux 脚本，默认读取 `.env.prod`（可用 `ENV_FILE` 覆盖），启动 `db + api + web`：
+
+```bash
+chmod +x start.sh stop.sh    # 首次拉取后如无执行权限
+./start.sh                   # 启动（使用已有镜像）
+./start.sh --build           # 重新构建镜像后启动
+./stop.sh                    # 停止（保留容器、网络与数据卷）
+./stop.sh --status           # 查看状态；退出码 0=全部运行且健康，1=异常
+```
+
+`--status` 会输出 Docker 引擎、各容器状态、`running/expected` 服务数、HTTP 健康检查和数据卷情况，适合直接用于巡检或监控脚本。
+
 ## 已知限制
 
 - 登录接口没有限流 / 验证码，暴力破解防护需在网关或后续中间件补齐；

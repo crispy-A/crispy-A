@@ -57,6 +57,8 @@ ln -sfn "/var/www/crispy-a/releases/$TS" /var/www/crispy-a/current
 
 宿主机 Nginx 参考 [deploy/nginx-host.conf](nginx-host.conf)，把它合并进现有 server 块后 `nginx -t && systemctl reload nginx`。
 
+> 也可以直接用仓库根目录的 `./start.sh` / `./stop.sh --status`（默认读取 `.env.prod`，会同时启动 `db + api + web`）。
+
 > 也可以不用 rsync：直接把 `frontend/dist` 交给 CI 发布，或启用 `web` profile 用容器托管。
 
 ## 方式 B：容器托管前端
