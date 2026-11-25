@@ -34,6 +34,11 @@ func writeError(w http.ResponseWriter, status int, code, message string) {
 	writeJSON(w, status, errorEnvelope{Error: errorBody{Code: code, Message: message}})
 }
 
+// setNoStore 阻止浏览器/代理缓存认证响应。
+func setNoStore(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", "no-store")
+}
+
 // decodeJSON 限制请求体大小并拒绝未知字段，避免客户端拼写错误被静默忽略。
 func decodeJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)

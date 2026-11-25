@@ -72,11 +72,23 @@ func Load() (Config, error) {
 	if len(cfg.JWTSecret) < 32 {
 		return Config{}, errors.New("JWT_SECRET must be at least 32 characters")
 	}
+	if isTemplateValue(cfg.JWTSecret) {
+		return Config{}, errors.New("JWT_SECRET still looks like a template value; generate a random secret (openssl rand -base64 48)")
+	}
 	if (cfg.AdminEmail == "") != (cfg.AdminPassword == "") {
 		return Config{}, errors.New("ADMIN_EMAIL and ADMIN_PASSWORD must be set together")
 	}
 	if cfg.AdminPassword != "" && len(cfg.AdminPassword) < 10 {
 		return Config{}, errors.New("ADMIN_PASSWORD must be at least 10 characters")
+	}
+	if cfg.AdminPassword != "" && len(cfg.AdminPassword) > 72 {
+		return Config{}, errors.New("ADMIN_PASSWORD must be at most 72 bytes (bcrypt limit)")
+	}
+	if cfg.AdminPassword != "" && isTemplateValue(cfg.AdminPassword) {
+		return Config{}, errors.New("ADMIN_PASSWORD still looks like a template value; choose a real password")
+	}
+	if cfg.Env != "development" && cfg.Env != "test" && cfg.Env != "production" {
+		return Config{}, fmt.Errorf("APP_ENV must be development, test or production, got %q", cfg.Env)
 	}
 	if len(cfg.CORSOrigins) == 0 {
 		return Config{}, errors.New("CORS_ORIGINS must contain at least one origin")
@@ -110,6 +122,16 @@ func loadDotEnv(path string) error {
 		}
 	}
 	return nil
+}
+
+// isTemplateValue 拒绝公开模板里的示例值，避免“复制 .env.example 就能上线”的弱配置。
+func isTemplateValue(value string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	return strings.Contains(normalized, "change-me") ||
+		strings.Contains(normalized, "changeme") ||
+		strings.Contains(normalized, "replace-with") ||
+		strings.Contains(normalized, "your-secret") ||
+		strings.Contains(normalized, "your-password")
 }
 
 func getEnv(key, fallback string) string {

@@ -7,6 +7,30 @@ import (
 )
 
 // 回归：Windows 编辑器写入的 UTF-8 BOM 曾让 godotenv 静默失败，导致 .env 全部未生效。
+func TestIsTemplateValue(t *testing.T) {
+	templateValues := []string{
+		"replace-with-a-random-secret-at-least-32-chars",
+		"change-me-please",
+		"changeme",
+		"your-secret",
+	}
+	for _, value := range templateValues {
+		if !isTemplateValue(value) {
+			t.Fatalf("expected %q to be treated as a template value", value)
+		}
+	}
+
+	safeValues := []string{
+		"0Yb9k2mQ8sV1xR4tL6nP3cF7hJ5dG0aZ",
+		"CrispyAdmin2026!",
+	}
+	for _, value := range safeValues {
+		if isTemplateValue(value) {
+			t.Fatalf("expected %q to be accepted", value)
+		}
+	}
+}
+
 func TestLoadDotEnvAcceptsUTF8BOM(t *testing.T) {
 	path := filepath.Join(t.TempDir(), ".env")
 	content := "\uFEFFCRISPY_BOM_TEST=ok\n"

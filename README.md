@@ -94,10 +94,23 @@ Vite 将 `/api` 代理到 `http://127.0.0.1:8080`；如修改后端端口，同�
 ```powershell
 cd backend
 Copy-Item .env.example .env
-# 至少修改 DATABASE_URL、JWT_SECRET、ADMIN_PASSWORD
 ```
 
-`JWT_SECRET` 至少 32 字符；`ADMIN_PASSWORD` 至少 10 字符。`ADMIN_EMAIL` 与 `ADMIN_PASSWORD` 必须同时设置或同时留空。
+模板里的 `JWT_SECRET`、`ADMIN_EMAIL`、`ADMIN_PASSWORD` **故意留空**（防止示例凭据被直接用于部署），需要自己填写：
+
+```powershell
+# 生成 48 字节随机密钥
+$bytes = New-Object byte[] 48
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes); $rng.Dispose()
+[Convert]::ToBase64String($bytes)
+
+# 然后编辑 .env：填写 DATABASE_URL、JWT_SECRET、ADMIN_EMAIL、ADMIN_PASSWORD
+```
+
+约束：`JWT_SECRET` 至少 32 字符；`ADMIN_PASSWORD` 至少 10 字符；`ADMIN_EMAIL` 与 `ADMIN_PASSWORD` 必须同时设置或同时留空。启动时会拒绝 `change-me` / `replace-with` 这类模板占位值。
+
+`ADMIN_*` 只在 `users` 表为空时生效；账号创建后修改环境变量不会更新密码（见「已知限制」）。
 
 ## 配置项
 
@@ -109,7 +122,7 @@ Copy-Item .env.example .env
 | `JWT_SECRET` | 必填，≥32 字符 | HS256 签名密钥 |
 | `ACCESS_TOKEN_TTL` | `15m` | access token 有效期 |
 | `REFRESH_TOKEN_TTL` | `168h` | refresh 会话有效期 |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | 空 | 仅在用户表为空时用于初始化管理员 |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | 空 | 仅在用户表为空时用于初始化管理员，之后修改无效 |
 | `CORS_ORIGINS` | `http://localhost:5173` | 允许跨域的前端地址，逗号分隔 |
 | `COOKIE_SECURE` | `false` | HTTPS 部署必须设为 `true` |
 
@@ -243,8 +256,8 @@ server {
 ## 已知限制
 
 - 登录接口没有限流 / 验证码，暴力破解防护需在网关或后续中间件补齐；
-- 没有改密、找回密码、多用户与角色管理，只有单管理员；
-- refresh token 只做轮换与撤销，未实现「重放即全量撤销」；
+- 没有改密、找回密码、多用户与角色管理，只有单管理员；管理员密码创建后只能直接更新 `users.password_hash`；
+- refresh token 只做轮换与撤销，未实现「重放即全量撤销」；refresh 失败不会清除 cookie，前端接入时应对 refresh 做单飞（single-flight）并限制重试；
 - 前端只接了健康检查，尚未做登录页与后台 UI；
 - 迁移只向上，不提供自动回滚；
 - 没有 CI、Dockerfile 与生产监控埋点。

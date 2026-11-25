@@ -38,6 +38,8 @@ type loginResponse struct {
 }
 
 func (h *authHandler) login(w http.ResponseWriter, r *http.Request) {
+	setNoStore(w)
+
 	var request loginRequest
 	if err := decodeJSON(w, r, &request); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid_request", "请求体必须是合法的 JSON 对象")
@@ -69,6 +71,8 @@ func (h *authHandler) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *authHandler) refresh(w http.ResponseWriter, r *http.Request) {
+	setNoStore(w)
+
 	cookie, err := r.Cookie(h.cookie.name)
 	if err != nil || cookie.Value == "" {
 		writeError(w, http.StatusUnauthorized, "missing_refresh_token", "登录状态已失效，请重新登录")
@@ -77,7 +81,8 @@ func (h *authHandler) refresh(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.service.Refresh(r.Context(), cookie.Value)
 	if errors.Is(err, auth.ErrInvalidRefreshToken) {
-		h.clearRefreshCookie(w)
+		// 不在这里清 cookie：并发的 refresh 请求中失败的一方可能在成功响应之后到达，
+		// 清 cookie 会把刚轮换成功的新会话一起登出。cookie 只在 logout 时清除。
 		writeError(w, http.StatusUnauthorized, "invalid_refresh_token", "登录状态已失效，请重新登录")
 		return
 	}
@@ -96,6 +101,8 @@ func (h *authHandler) refresh(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *authHandler) logout(w http.ResponseWriter, r *http.Request) {
+	setNoStore(w)
+
 	if cookie, err := r.Cookie(h.cookie.name); err == nil && cookie.Value != "" {
 		if err := h.service.Logout(r.Context(), cookie.Value); err != nil {
 			h.logger.Error("logout failed", "error", err)
@@ -112,6 +119,8 @@ type meResponse struct {
 }
 
 func (h *authHandler) me(w http.ResponseWriter, r *http.Request) {
+	setNoStore(w)
+
 	identity, ok := identityFrom(r.Context())
 	if !ok {
 		unauthorized(w)
